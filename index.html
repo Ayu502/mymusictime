@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a062562745.js" crossorigin="anonymous"></script>
+    <title>MP3 Player</title>
+    <style>
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #2d2d2d;
+        color: #ffc266;
+      }
+      .player-ctn {
+        width: 420px;
+        background-color: #373737;
+        padding: 10px;
+        margin: 0 auto;
+        border-radius: 10px;
+      }
+      .btn-ctn {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 15px;
+      }
+      #myProgress {
+        width: 100%;
+        background-color: #d9d9f2;
+        height: 5px;
+        border-radius: 10px;
+      }
+      #myBar {
+        width: 0%;
+        background-color: #ffc266;
+        height: 5px;
+        border-radius: 10px;
+      }
+      .title {
+        text-align: center;
+        margin-bottom: 15px;
+      }
+      .btn-action i {
+        font-size: 20px;
+        color: #ffc266;
+        cursor: pointer;
+      }
+      .timer {
+        text-align: center;
+      }
+      .duration {
+        text-align: center;
+      }
+      .playlist-ctn {
+        margin-top: 20px;
+      }
+      .playlist-track {
+        display: flex;
+        justify-content: space-between;
+        background-color: #484848;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+      }
+      .track-title {
+        color: #fff;
+        font-weight: bold;
+      }
+      .track-duration {
+        color: #bbb;
+      }
+      .play-btn, .stop-btn {
+        cursor: pointer;
+        padding: 5px 10px;
+        background-color: #ffc266;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      .stop-btn {
+        background-color: #f44336;
+      }
+    </style>
+  </head>
+  <body>
+
+    <audio id="myAudio" ontimeupdate="onTimeUpdate()">
+      <source id="source-audio" src="Dream%20On.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <div class="player-ctn">
+      <div class="infos-ctn">
+        <div class="timer">00:00</div>
+        <div class="title">Dream On</div>
+        <div class="duration">03:15</div>
+      </div>
+
+      <div id="myProgress">
+        <div id="myBar"></div>
+      </div>
+
+      <div class="btn-ctn">
+        <div class="btn-action first-btn" onclick="previous()">
+          <i class="fas fa-step-backward"></i>
+        </div>
+
+        <div class="btn-action" onclick="rewind()">
+          <i class="fas fa-backward"></i>
+        </div>
+
+        <div class="btn-action" onclick="toggleAudio()">
+          <i class="fas fa-play" id="icon-play"></i>
+          <i class="fas fa-pause" id="icon-pause" style="display: none"></i>
+        </div>
+
+        <div class="btn-action" onclick="forward()">
+          <i class="fas fa-forward"></i>
+        </div>
+
+        <div class="btn-action" onclick="next()">
+          <i class="fas fa-step-forward"></i>
+        </div>
+
+        <div class="btn-action" id="toggleMute" onclick="toggleMute()">
+          <i id="icon-vol-up" class="fas fa-volume-up"></i>
+          <i id="icon-vol-mute" class="fas fa-volume-mute" style="display: none"></i>
+        </div>
+      </div>
+
+      <div class="playlist-ctn">
+        <div class="playlist-track">
+          <div class="track-title">Dream On</div>
+          <div class="track-duration">03:15</div>
+          <button class="play-btn" onclick="playTrack(0)">Play</button>
+          <button class="stop-btn" onclick="stopTrack()">Stop</button>
+        </div>
+        <div class="playlist-track">
+          <div class="track-title">Everybody Wants To Be My Enemy</div>
+          <div class="track-duration">04:10</div>
+          <button class="play-btn" onclick="playTrack(1)">Play</button>
+          <button class="stop-btn" onclick="stopTrack()">Stop</button>
+        </div>
+        <div class="playlist-track">
+          <div class="track-title">Memory Reboot</div>
+          <div class="track-duration">03:45</div>
+          <button class="play-btn" onclick="playTrack(2)">Play</button>
+          <button class="stop-btn" onclick="stopTrack()">Stop</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var currentAudio = document.getElementById("myAudio");
+      var tracks = [
+        { name: "Dream On", file: "Dream%20On.mp3", duration: "03:15" },
+        { name: "Everybody Wants To Be My Enemy", file: "Everybody%20Wants%20To%20Be%20My%20Enemy%20-%20SamWep.mp3", duration: "04:10" },
+        { name: "Memory Reboot", file: "Memory-Reboot.mp3", duration: "03:45" }
+      ];
+      var currentTrackIndex = -1;
+
+      // Function to play the track by index
+      function playTrack(index) {
+        if (currentTrackIndex !== index) {
+          loadTrack(index);
+          currentAudio.play();
+          document.querySelector('#icon-play').style.display = 'none';
+          document.querySelector('#icon-pause').style.display = 'block';
+        } else if (currentAudio.paused) {
+          currentAudio.play();
+          document.querySelector('#icon-play').style.display = 'none';
+          document.querySelector('#icon-pause').style.display = 'block';
+        }
+      }
+
+      // Function to stop the current track
+      function stopTrack() {
+        currentAudio.pause();
+        document.querySelector('#icon-play').style.display = 'block';
+        document.querySelector('#icon-pause').style.display = 'none';
+      }
+
+      // Function to load a track by index
+      function loadTrack(index) {
+        currentTrackIndex = index;
+        var track = tracks[index];
+        currentAudio.src = track.file;
+        document.querySelector('.title').innerHTML = track.name;
+        document.querySelector('.duration').innerHTML = track.duration;
+        currentAudio.load();
+      }
+
+      // Function to toggle play/pause globally
+      function toggleAudio() {
+        if (currentAudio.paused) {
+          currentAudio.play();
+          document.querySelector('#icon-play').style.display = 'none';
+          document.querySelector('#icon-pause').style.display = 'block';
+        } else {
+          currentAudio.pause();
+          document.querySelector('#icon-play').style.display = 'block';
+          document.querySelector('#icon-pause').style.display = 'none';
+        }
+      }
+
+      // Update the progress bar and timer
+      currentAudio.ontimeupdate = function () {
+        var t = currentAudio.currentTime;
+        document.querySelector('.timer').innerHTML = getMinutes(t);
+        setBarProgress();
+        if (currentAudio.ended) {
+          document.querySelector('#icon-play').style.display = 'block';
+          document.querySelector('#icon-pause').style.display = 'none';
+        }
+      };
+
+      function setBarProgress() {
+        var progress = (currentAudio.currentTime / currentAudio.duration) * 100;
+        document.getElementById("myBar").style.width = progress + "%";
+      }
+
+      function getMinutes(t) {
+        var min = parseInt(parseInt(t) / 60);
+        var sec = parseInt(t % 60);
+        if (sec < 10) {
+          sec = "0" + sec;
+        }
+        if (min < 10) {
+          min = "0" + min;
+        }
+        return min + ":" + sec;
+      }
+
+      function forward() {
+        currentAudio.currentTime = currentAudio.currentTime + 5;
+        setBarProgress();
+      }
+
+      function rewind() {
+        currentAudio.currentTime = currentAudio.currentTime - 5;
+        setBarProgress();
+      }
+
+      function toggleMute() {
+        var volUp = document.querySelector('#icon-vol-up');
+        var volMute = document.querySelector('#icon-vol-mute');
+        if (currentAudio.muted == false) {
+          currentAudio.muted = true;
+          volUp.style.display = "none";
+          volMute.style.display = "block";
+        } else {
+          currentAudio.muted = false;
+          volMute.style.display = "none";
+          volUp.style.display = "block";
+        }
+      }
+
+      // Initialize player with first track
+      loadTrack(0);
+    </script>
+
+  </body>
+</html>
